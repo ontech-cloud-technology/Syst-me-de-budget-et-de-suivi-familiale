@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soumission - Budget Familial</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2D3047;
+            --accent-color: #6C63FF;
+            --gradient-start: #2D3047;
+            --gradient-end: #1A1A2E;
+            --text-light: #E0E0E0;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            min-height: 100vh;
+            color: var(--text-light);
+            padding-top: 80px;
+        }
+
+        /* Progress Steps */
+        .steps-progress {
+            display: flex;
+            justify-content: space-between;
+            margin: 3rem auto;
+            position: relative;
+            max-width: 800px;
+            padding: 0 20px;
+            gap: 15px;
+        }
+
+        .steps-progress::before {
+            content: '';
+            position: absolute;
+            top: 25px;
+            left: 50px;
+            right: 50px;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .progress-step {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--text-light);
+            width: 150px;
+            padding: 0 10px;
+        }
+
+        .step-number {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            position: relative;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress-step.active .step-number {
+            background: var(--accent-color);
+            border-color: #8B7FFF;
+            box-shadow: 0 0 25px rgba(108, 99, 255, 0.4);
+            transform: scale(1.1);
+        }
+
+        .progress-step.completed .step-number {
+            background: #4CAF50;
+            border-color: #45a049;
+        }
+
+        .progress-step.completed .step-number::after {
+            content: '✓';
+            font-size: 1.2rem;
+        }
+
+        .step-label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+            transition: all 0.3s ease;
+            line-height: 1.2;
+            margin-top: 0.5rem;
+            width: 100%;
+            min-height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            word-wrap: break-word;
+            hyphens: auto;
+        }
+
+        .progress-step.active .step-label {
+            color: white;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .steps-progress {
+                max-width: 100%;
+                padding: 0 10px;
+                gap: 5px;
+            }
+
+            .progress-step {
+                width: 90px;
+                padding: 0 5px;
+            }
+
+            .step-label {
+                font-size: 0.75rem;
+                min-height: 40px;
+            }
+
+            .step-number {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+
+            .steps-progress::before {
+                left: 30px;
+                right: 30px;
+            }
+        }
+
+        /* Card Animations */
+        .card {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Form Section Styling */
+        .form-section {
+            display: none;
+            padding: 2rem;
+            margin: 2rem 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .form-section.active {
+            display: block;
+            animation: slideIn 0.4s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .form-section .row {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-section .col-md-6,
+        .form-section .col-12 {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-section label:not(.form-check-label) {
+            margin-bottom: 0.75rem;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 500;
+        }
+
+        /* Custom Input Styling */
+        .form-floating {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-floating > label {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .form-floating > .form-control:focus ~ label,
+        .form-floating > .form-control:not(:placeholder-shown) ~ label {
+            color: var(--accent-color);
+            transform: scale(0.85) translateY(-0.75rem) translateX(0.15rem);
+        }
+
+        .input-group-text {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.1);
+            color: var(--text-light);
+        }
+
+        /* Radio and Checkbox Styling */
+        .custom-radio,
+        .custom-checkbox {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .custom-radio:hover,
+        .custom-checkbox:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .custom-radio input[type="radio"],
+        .custom-checkbox input[type="checkbox"] {
+            display: none;
+        }
+
+        .custom-radio.selected,
+        .custom-checkbox.selected {
+            background: rgba(108, 99, 255, 0.2);
+            border-color: var(--accent-color);
+        }
+
+        /* Button Styling */
+        .btn {
+            padding: 0.8rem 2rem;
+            border-radius: 50px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-light {
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-outline-light:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: white;
+        }
+
+        /* Helper Text */
+        .help-text {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 0.25rem;
+        }
+
+        /* Error States */
+        .is-invalid {
+            border-color: #dc3545 !important;
+        }
+
+        .invalid-feedback {
+            color: #dc3545;
+            font-size: 0.85rem;
+            margin-top: 0.25rem;
+        }
+
+        .navbar {
+            background: rgba(255, 255, 255, 0.98) !important;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            padding: 1rem 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            background: linear-gradient(45deg, var(--accent-color), #8B7FFF);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-link {
+            font-weight: 500;
+            color: var(--primary-color) !important;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--accent-color) !important;
+        }
+
+        .container {
+            padding-top: 2rem;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2.5rem !important;
+            margin-bottom: 2rem;
+        }
+
+        .card h2 {
+            font-size: 2.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #fff, rgba(255, 255, 255, 0.8));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+        }
+
+        .card p.text-center {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1.1rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .form-control {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 0.8rem 1.2rem;
+            border-radius: 10px;
+        }
+
+        .form-control:focus {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--accent-color);
+            color: white;
+            box-shadow: 0 0 0 0.2rem rgba(108, 99, 255, 0.15);
+        }
+
+        .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        footer {
+            background: rgba(0, 0, 0, 0.2);
+            color: var(--text-light);
+            padding: 2rem 0;
+            margin-top: 4rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, var(--accent-color), #8B7FFF);
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 50px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 99, 255, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">Budget Familial</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html#features">Fonctionnalités</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html#contact">Contact</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Légal
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <li><a class="dropdown-item" href="privacy-policy.html">Protection des données</a></li>
+                            <li><a class="dropdown-item" href="data-policy.html">Gestion des données</a></li>
+                            <li><a class="dropdown-item" href="terms.html">Conditions d'utilisation</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card p-4">
+                    <h2 class="text-center mb-4">Demande de Soumission</h2>
+                    <p class="text-center mb-4">Remplissez ce formulaire pour recevoir une soumission personnalisée.</p>
+                    
+                    <!-- Progress Steps -->
+                    <div class="steps-progress mb-5">
+                        <div class="progress-step active" data-step="1">
+                            <div class="step-number">1</div>
+                            <div class="step-label">Informations Personnelles</div>
+                        </div>
+                        <div class="progress-step" data-step="2">
+                            <div class="step-number">2</div>
+                            <div class="step-label">Situation Familiale</div>
+                        </div>
+                        <div class="progress-step" data-step="3">
+                            <div class="step-number">3</div>
+                            <div class="step-label">Finances</div>
+                        </div>
+                        <div class="progress-step" data-step="4">
+                            <div class="step-number">4</div>
+                            <div class="step-label">Objectifs</div>
+                        </div>
+                    </div>
+
+                    <form id="submissionForm">
+                        <!-- Section 1: Informations Personnelles -->
+                        <div class="form-section active" data-step="1">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <input type="text" class="form-control" id="firstName" placeholder="Prénom" required>
+                                        <label for="firstName">Prénom</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <input type="text" class="form-control" id="lastName" placeholder="Nom" required>
+                                        <label for="lastName">Nom</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="form-floating">
+                                        <input type="email" class="form-control" id="email" placeholder="Email" required>
+                                        <label for="email">Email</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <input type="tel" class="form-control" id="phone" placeholder="Téléphone">
+                                        <label for="phone">Téléphone</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <input type="text" class="form-control" id="postalCode" placeholder="Code Postal">
+                                        <label for="postalCode">Code Postal</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 2: Situation Familiale -->
+                        <div class="form-section" data-step="2">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label class="mb-3">État Civil</label>
+                                    <div class="d-flex gap-3 flex-wrap">
+                                        <div class="custom-radio">
+                                            <input type="radio" name="civilStatus" id="single" value="single">
+                                            <label for="single">Célibataire</label>
+                                        </div>
+                                        <div class="custom-radio">
+                                            <input type="radio" name="civilStatus" id="married" value="married">
+                                            <label for="married">Marié(e)</label>
+                                        </div>
+                                        <div class="custom-radio">
+                                            <input type="radio" name="civilStatus" id="divorced" value="divorced">
+                                            <label for="divorced">Divorcé(e)</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <select class="form-control" id="householdSize">
+                                            <option value="">Sélectionnez...</option>
+                                            <option value="1">1 personne</option>
+                                            <option value="2">2 personnes</option>
+                                            <option value="3">3 personnes</option>
+                                            <option value="4">4 personnes</option>
+                                            <option value="5+">5 personnes ou plus</option>
+                                        </select>
+                                        <label for="householdSize">Taille du foyer</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <select class="form-control" id="children">
+                                            <option value="">Sélectionnez...</option>
+                                            <option value="0">Pas d'enfants</option>
+                                            <option value="1">1 enfant</option>
+                                            <option value="2">2 enfants</option>
+                                            <option value="3">3 enfants</option>
+                                            <option value="4+">4 enfants ou plus</option>
+                                        </select>
+                                        <label for="children">Nombre d'enfants</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 3: Finances -->
+                        <div class="form-section" data-step="3">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <input type="number" class="form-control" id="monthlyIncome" placeholder="Revenu mensuel">
+                                        <label for="monthlyIncome">Revenu mensuel (CAD)</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <input type="number" class="form-control" id="monthlySavings" placeholder="Épargne mensuelle">
+                                        <label for="monthlySavings">Épargne mensuelle (CAD)</label>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <label class="mb-3">Avez-vous des dettes?</label>
+                                    <div class="custom-checkbox">
+                                        <input type="checkbox" id="mortgage" name="debts" value="mortgage">
+                                        <label for="mortgage">Hypothèque</label>
+                                    </div>
+                                    <div class="custom-checkbox">
+                                        <input type="checkbox" id="carLoan" name="debts" value="carLoan">
+                                        <label for="carLoan">Prêt automobile</label>
+                                    </div>
+                                    <div class="custom-checkbox">
+                                        <input type="checkbox" id="creditCard" name="debts" value="creditCard">
+                                        <label for="creditCard">Cartes de crédit</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 4: Objectifs -->
+                        <div class="form-section" data-step="4">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label class="mb-3">Objectifs financiers principaux</label>
+                                    <div class="custom-checkbox">
+                                        <input type="checkbox" id="retirement" name="goals" value="retirement">
+                                        <label for="retirement">Préparation à la retraite</label>
+                                    </div>
+                                    <div class="custom-checkbox">
+                                        <input type="checkbox" id="investment" name="goals" value="investment">
+                                        <label for="investment">Investissements</label>
+                                    </div>
+                                    <div class="custom-checkbox">
+                                        <input type="checkbox" id="debtReduction" name="goals" value="debtReduction">
+                                        <label for="debtReduction">Réduction des dettes</label>
+                                    </div>
+                                    <div class="custom-checkbox">
+                                        <input type="checkbox" id="homeOwnership" name="goals" value="homeOwnership">
+                                        <label for="homeOwnership">Achat immobilier</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <select class="form-control" id="timeHorizon">
+                                            <option value="">Sélectionnez...</option>
+                                            <option value="short">Court terme (< 2 ans)</option>
+                                            <option value="medium">Moyen terme (2-5 ans)</option>
+                                            <option value="long">Long terme (> 5 ans)</option>
+                                        </select>
+                                        <label for="timeHorizon">Horizon temporel</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <select class="form-control" id="riskTolerance">
+                                            <option value="">Sélectionnez...</option>
+                                            <option value="low">Faible</option>
+                                            <option value="medium">Modéré</option>
+                                            <option value="high">Élevé</option>
+                                        </select>
+                                        <label for="riskTolerance">Tolérance au risque</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Navigation Buttons -->
+                        <div class="form-navigation">
+                            <button type="button" class="btn btn-outline-light prev-step" style="display: none;">Précédent</button>
+                            <button type="button" class="btn btn-primary next-step">Suivant</button>
+                            <button type="submit" class="btn btn-primary submit-form" style="display: none;">Soumettre</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="mt-5">
+        <div class="container">
+            <div class="row gy-4 justify-content-between">
+                <div class="col-md-6">
+                    <h5 class="mb-4">Budget Familial</h5>
+                    <p class="mb-0">Votre partenaire de confiance pour une gestion financière intelligente et sereine.</p>
+                </div>
+                <div class="col-md-6">
+                    <h5 class="mb-4">Liens Importants</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="privacy-policy.html" class="text-light text-decoration-none">Protection des données</a></li>
+                        <li class="mb-2"><a href="data-policy.html" class="text-light text-decoration-none">Gestion des données</a></li>
+                        <li class="mb-2"><a href="terms.html" class="text-light text-decoration-none">Conditions d'utilisation</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="mt-4 mb-3" style="border-color: rgba(255,255,255,0.1);">
+            <p class="text-center mb-0">&copy; 2025 Budget Familial. Une collaboration ONTech-Cloud Technology et Look-Tech. Tous droits réservés.</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module">
+        // Import Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-firestore.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-auth.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCmPGAHWI8ryKaHBiQJsFBP5wioriMmMOI",
+            authDomain: "budget-eef49.firebaseapp.com",
+            projectId: "budget-eef49",
+            storageBucket: "budget-eef49.firebasestorage.app",
+            messagingSenderId: "900677643847",
+            appId: "1:900677643847:web:06caf67097a65fa9428b62"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('submissionForm');
+            const sections = document.querySelectorAll('.form-section');
+            const steps = document.querySelectorAll('.progress-step');
+            const nextBtn = document.querySelector('.next-step');
+            const prevBtn = document.querySelector('.prev-step');
+            const submitBtn = document.querySelector('.submit-form');
+            let currentStep = 1;
+
+            // Navigation entre les étapes
+            function goToStep(step) {
+                sections.forEach(section => {
+                    section.classList.remove('active');
+                    if(section.dataset.step == step) {
+                        section.classList.add('active');
+                    }
+                });
+
+                steps.forEach(s => {
+                    s.classList.remove('active');
+                    if(s.dataset.step <= step) {
+                        s.classList.add('completed');
+                    }
+                    if(s.dataset.step == step) {
+                        s.classList.add('active');
+                    }
+                });
+
+                // Mise à jour des boutons
+                prevBtn.style.display = step > 1 ? 'block' : 'none';
+                nextBtn.style.display = step < 4 ? 'block' : 'none';
+                submitBtn.style.display = step == 4 ? 'block' : 'none';
+
+                currentStep = step;
+            }
+
+            // Event listeners pour la navigation
+            nextBtn.addEventListener('click', () => {
+                if(validateStep(currentStep)) {
+                    goToStep(currentStep + 1);
+                }
+            });
+
+            prevBtn.addEventListener('click', () => {
+                goToStep(currentStep - 1);
+            });
+
+            // Validation des étapes
+            function validateStep(step) {
+                const currentSection = document.querySelector(`.form-section[data-step="${step}"]`);
+                const requiredFields = currentSection.querySelectorAll('[required]');
+                let isValid = true;
+
+                requiredFields.forEach(field => {
+                    if (!field.value) {
+                        isValid = false;
+                        field.classList.add('is-invalid');
+                        if (!field.nextElementSibling?.classList.contains('invalid-feedback')) {
+                            const feedback = document.createElement('div');
+                            feedback.className = 'invalid-feedback';
+                            feedback.textContent = 'Ce champ est requis';
+                            field.parentNode.appendChild(feedback);
+                        }
+                    } else {
+                        field.classList.remove('is-invalid');
+                    }
+                });
+
+                return isValid;
+            }
+
+            // Gestion des radios et checkboxes personnalisés
+            document.querySelectorAll('.custom-radio, .custom-checkbox').forEach(element => {
+                element.addEventListener('click', function() {
+                    const input = this.querySelector('input');
+                    if (input.type === 'radio') {
+                        // Désélectionner les autres radios du même groupe
+                        document.querySelectorAll(`input[name="${input.name}"]`).forEach(radio => {
+                            radio.parentElement.classList.remove('selected');
+                        });
+                    }
+                    this.classList.toggle('selected');
+                    input.checked = !input.checked;
+                });
+            });
+
+            // Validation des champs
+            function validateField(field) {
+                const value = field.value.trim();
+                let isValid = true;
+                let errorMessage = '';
+
+                switch(field.id) {
+                    case 'email':
+                        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                        isValid = emailRegex.test(value);
+                        errorMessage = 'Veuillez entrer une adresse email valide';
+                        break;
+                    case 'phone':
+                        const phoneRegex = /^[\d\s\-\+\(\)]{10,}$/;
+                        isValid = value === '' || phoneRegex.test(value);
+                        errorMessage = 'Veuillez entrer un numéro de téléphone valide';
+                        break;
+                    case 'postalCode':
+                        const postalRegex = /^[A-Za-z]\d[A-Za-z][ -]?\d[A-Za-z]\d$/;
+                        isValid = value === '' || postalRegex.test(value);
+                        errorMessage = 'Veuillez entrer un code postal canadien valide';
+                        break;
+                    case 'monthlyIncome':
+                    case 'monthlySavings':
+                        isValid = !isNaN(value) && parseFloat(value) >= 0;
+                        errorMessage = 'Veuillez entrer un montant valide';
+                        break;
+                    default:
+                        if (field.hasAttribute('required')) {
+                            isValid = value !== '';
+                            errorMessage = 'Ce champ est requis';
+                        }
+                }
+
+                if (!isValid) {
+                    field.classList.add('is-invalid');
+                    if (!field.nextElementSibling?.classList.contains('invalid-feedback')) {
+                        const feedback = document.createElement('div');
+                        feedback.className = 'invalid-feedback';
+                        feedback.textContent = errorMessage;
+                        field.parentNode.appendChild(feedback);
+                    }
+                } else {
+                    field.classList.remove('is-invalid');
+                    const feedback = field.nextElementSibling;
+                    if (feedback?.classList.contains('invalid-feedback')) {
+                        feedback.remove();
+                    }
+                }
+
+                return isValid;
+            }
+
+            // Validation en temps réel
+            const formInputs = form.querySelectorAll('input, select, textarea');
+            formInputs.forEach(input => {
+                input.addEventListener('blur', () => validateField(input));
+                input.addEventListener('input', () => {
+                    if (input.classList.contains('is-invalid')) {
+                        validateField(input);
+                    }
+                });
+            });
+
+            // Collecte des données du formulaire
+            function collectFormData() {
+                const formData = {
+                    // Section 1: Informations personnelles
+                    personalInfo: {
+                        firstName: document.getElementById('firstName').value,
+                        lastName: document.getElementById('lastName').value,
+                        email: document.getElementById('email').value,
+                        phone: document.getElementById('phone').value,
+                        postalCode: document.getElementById('postalCode').value
+                    },
+                    // Section 2: Situation familiale
+                    familyInfo: {
+                        civilStatus: document.querySelector('input[name="civilStatus"]:checked')?.value || '',
+                        householdSize: document.getElementById('householdSize').value,
+                        children: document.getElementById('children').value
+                    },
+                    // Section 3: Finances
+                    financialInfo: {
+                        monthlyIncome: parseFloat(document.getElementById('monthlyIncome').value) || 0,
+                        monthlySavings: parseFloat(document.getElementById('monthlySavings').value) || 0,
+                        debts: Array.from(document.querySelectorAll('input[name="debts"]:checked')).map(cb => cb.value)
+                    },
+                    // Section 4: Objectifs
+                    goals: {
+                        financialGoals: Array.from(document.querySelectorAll('input[name="goals"]:checked')).map(cb => cb.value),
+                        timeHorizon: document.getElementById('timeHorizon').value,
+                        riskTolerance: document.getElementById('riskTolerance').value
+                    },
+                    timestamp: new Date().toISOString(),
+                    status: 'pending'
+                };
+
+                return formData;
+            }
+
+            // Soumission du formulaire
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                if(validateStep(currentStep)) {
+                    try {
+                        // Animation de chargement
+                        submitBtn.disabled = true;
+                        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Envoi en cours...';
+
+                        // Collecter les données
+                        const formData = collectFormData();
+
+                        // Enregistrer dans Firestore
+                        const docRef = await addDoc(collection(db, "submissions"), formData);
+
+                        // Afficher le message de succès
+                        const successAlert = document.createElement('div');
+                        successAlert.className = 'alert alert-success mt-3';
+                        successAlert.innerHTML = `
+                            <h4 class="alert-heading">Demande envoyée avec succès!</h4>
+                            <p>Votre numéro de référence: ${docRef.id}</p>
+                            <hr>
+                            <p class="mb-0">Nous examinerons votre demande et vous contacterons rapidement.</p>
+                        `;
+
+                        form.insertAdjacentElement('afterend', successAlert);
+
+                        // Rediriger après 3 secondes
+                        setTimeout(() => {
+                            window.location.href = 'index.html';
+                        }, 3000);
+
+                    } catch (error) {
+                        console.error("Erreur lors de la soumission:", error);
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = 'Soumettre';
+                        
+                        const errorAlert = document.createElement('div');
+                        errorAlert.className = 'alert alert-danger mt-3';
+                        errorAlert.innerHTML = `
+                            <h4 class="alert-heading">Une erreur est survenue</h4>
+                            <p>Nous n'avons pas pu traiter votre demande. Veuillez réessayer plus tard.</p>
+                        `;
+                        form.insertAdjacentElement('afterend', errorAlert);
+                    }
+                }
+            });
+
+            // Initialisation
+            goToStep(1);
+        });
+    </script>
+</body>
+</html>

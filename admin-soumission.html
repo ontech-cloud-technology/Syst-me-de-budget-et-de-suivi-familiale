@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Administration des Soumissions — Budget Familial</title>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
+
+  <style>
+  :root {
+    --bg: radial-gradient(circle at top left, #0b0f1d, #020617);
+    --accent: linear-gradient(90deg, #7c3aed, #06b6d4);
+    --muted: #94a3b8;
+    --border: rgba(255,255,255,0.08);
+    --card: rgba(255,255,255,0.05);
+    --radius: 16px;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;
+    padding:0;
+    font-family:'Manrope',sans-serif;
+    background:var(--bg);
+    color:#e2e8f0;
+    height:auto;
+    min-height:100vh;
+  }
+
+  body{
+    display:grid;
+    grid-template-columns:250px 1fr;
+  }
+
+  /* === SIDEBAR === */
+  .sidebar{
+    background:rgba(17,24,39,0.6);
+    backdrop-filter:blur(12px);
+    border-right:1px solid var(--border);
+    display:flex;
+    flex-direction:column;
+    height:100vh;
+    position:sticky;
+    top:0;
+  }
+
+  .brand{
+    text-align:center;
+    font-weight:800;
+    font-size:22px;
+    background:var(--accent);
+    -webkit-background-clip:text;
+    background-clip: text;
+    -webkit-text-fill-color:transparent;
+    margin:20px 0;
+  }
+
+  .nav{
+    flex:1;
+  }
+
+  .nav a{
+    display:block;
+    padding:14px 24px;
+    color:var(--muted);
+    text-decoration:none;
+    transition:all .25s ease;
+  }
+  .nav a:hover,.nav a.active{
+    color:#fff;
+    background:rgba(255,255,255,0.07);
+    border-left:3px solid #7c3aed;
+  }
+
+  .logout{
+    padding:18px 24px;
+    color:#ef4444;
+    cursor:pointer;
+    transition:background .2s;
+  }
+  .logout:hover{background:rgba(239,68,68,0.12);}
+
+  /* === MAIN === */
+  .main{
+    padding:32px;
+    display:flex;
+    flex-direction:column;
+    gap:28px;
+    min-height:100vh;
+    background:linear-gradient(180deg,rgba(255,255,255,0.01),rgba(255,255,255,0.02));
+  }
+
+  .header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+
+  .header h2{
+    margin:0;
+    font-weight:700;
+    background:var(--accent);
+    -webkit-background-clip:text;
+    background-clip: text;
+    -webkit-text-fill-color:transparent;
+  }
+
+  /* Styles pour la section soumissions */
+  .content-section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-top: 20px;
+  }
+
+  .submissions-container {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .submissions-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-top: 20px;
+  }
+
+  .submissions-table th {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .submissions-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .submissions-table tbody tr {
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .submissions-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .submission-id {
+    font-family: monospace;
+    color: var(--muted);
+    font-size: 0.9em;
+  }
+
+  .submission-status {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85em;
+    font-weight: 600;
+  }
+
+  .status-pending {
+    background: rgba(234, 179, 8, 0.2);
+    color: #fbbf24;
+  }
+
+  .status-approved {
+    background: rgba(34, 197, 94, 0.2);
+    color: #4ade80;
+  }
+
+  .status-rejected {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+  }
+
+  /* Modal styles */
+  .modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+  }
+
+  .modal.active {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .modal-content {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 24px;
+    cursor: pointer;
+    padding: 4px;
+    line-height: 1;
+  }
+
+  .modal-header {
+    margin-bottom: 24px;
+    padding-right: 32px;
+  }
+
+  .modal-header h3 {
+    margin: 0;
+    font-size: 1.5em;
+    color: #fff;
+  }
+
+  .submission-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 24px;
+    margin-bottom: 24px;
+  }
+
+  .detail-group {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 16px;
+    border-radius: 8px;
+  }
+
+  .detail-group h4 {
+    color: var(--muted);
+    font-size: 0.9em;
+    margin: 0 0 8px 0;
+  }
+
+  .detail-group p {
+    margin: 0;
+    font-size: 0.95em;
+  }
+
+  .submission-actions {
+    display: flex;
+    gap: 10px;
+    border-top: 1px solid var(--border);
+    padding-top: 20px;
+    margin-top: 20px;
+  }
+
+  .btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: none;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+  }
+
+  .btn-approve {
+    background: rgba(34, 197, 94, 0.2);
+    color: #4ade80;
+    padding: 10px 20px;
+  }
+
+  .btn-reject {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+    padding: 10px 20px;
+  }
+
+  .btn-approve:hover {
+    background: rgba(34, 197, 94, 0.3);
+    transform: translateY(-1px);
+  }
+
+  .btn-reject:hover {
+    background: rgba(239, 68, 68, 0.3);
+    transform: translateY(-1px);
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-start;
+  }
+
+  .btn-icon {
+    font-size: 1.2em;
+    margin-right: 4px;
+  }
+
+  #loading-indicator {
+    text-align: center;
+    padding: 20px;
+    color: var(--muted);
+  }
+
+  #error-message {
+    text-align: center;
+    padding: 20px;
+    margin-top: 10px;
+    border-radius: var(--radius);
+    background: rgba(239, 68, 68, 0.1);
+  }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <div class="brand">Admin BF</div>
+    <div class="nav">
+      <a href="admin.html">Tableau de bord</a>
+      <a href="#" class="active">Soumissions</a>
+      <a href="transactions.html">Transactions</a>
+      <a href="users.html">Utilisateurs</a>
+      <a href="categories.html">Catégories</a>
+      <a href="report.html">Rapports</a>
+      <a href="ai.html">IA & Conseils</a>
+    </div>
+    <div class="logout" id="logoutBtn">Se déconnecter</div>
+  </div>
+
+  <div class="main">
+    <div class="header">
+      <h2>Soumissions</h2>
+      <div id="userInfo" class="muted">Chargement...</div>
+    </div>
+
+    <div class="content-section">
+      <div class="submissions-container">
+        <table class="submissions-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Date</th>
+              <th>Nom</th>
+              <th>Statut</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="submissions-list">
+            <!-- Le contenu sera ajouté dynamiquement -->
+          </tbody>
+        </table>
+        <div id="loading-indicator" style="display: none;">
+          Chargement...
+        </div>
+        <div id="error-message" style="display: none; color: #ef4444;">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal pour les détails -->
+  <div id="submissionModal" class="modal">
+    <div class="modal-content">
+      <button class="modal-close">&times;</button>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
+    import { getFirestore, collection, getDocs, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCmPGAHWI8ryKaHBiQJsFBP5wioriMmMOI",
+      authDomain: "budget-eef49.firebaseapp.com",
+      projectId: "budget-eef49",
+      storageBucket: "budget-eef49.firebasestorage.app",
+      messagingSenderId: "900677643847",
+      appId: "1:900677643847:web:06caf67097a65fa9428b62"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const userInfo = document.getElementById("userInfo");
+    let currentUser = null;
+
+    // Vérifier l'authentification
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+      currentUser = user;
+      userInfo.textContent = user.email;
+      console.log("Utilisateur authentifié:", user.email);
+      await chargerSoumissions();
+    });
+
+    // Gérer la déconnexion
+    document.getElementById("logoutBtn").onclick = async () => {
+      await signOut(auth);
+      window.location.href = "login.html";
+    };
+
+    // Charger les soumissions
+    async function chargerSoumissions() {
+      const loadingIndicator = document.getElementById('loading-indicator');
+      const errorMessage = document.getElementById('error-message');
+      const submissionsList = document.getElementById('submissions-list');
+
+      try {
+        console.log("Début du chargement des soumissions");
+        if (loadingIndicator) loadingIndicator.style.display = 'block';
+        if (errorMessage) errorMessage.style.display = 'none';
+        
+        if (!submissionsList) {
+          throw new Error("Element submissions-list non trouvé");
+        }
+
+        // Effacer la liste actuelle et montrer le chargement
+        submissionsList.innerHTML = '<tr><td colspan="5" class="loading">Chargement des soumissions...</td></tr>';
+        
+        // Essayer d'abord la collection 'familyInfo'
+        let familyInfoRef = collection(db, 'familyInfo');
+        console.log("Tentative de récupération des données depuis 'familyInfo'");
+        let querySnapshot = await getDocs(familyInfoRef);
+        
+        // Si aucun document trouvé dans 'familyInfo', essayer 'submissions'
+        if (querySnapshot.empty) {
+          console.log("Aucun document trouvé dans 'familyInfo', tentative avec 'submissions'");
+          familyInfoRef = collection(db, 'submissions');
+          querySnapshot = await getDocs(familyInfoRef);
+        }
+        console.log("Nombre de documents trouvés:", querySnapshot.size);
+
+        if (querySnapshot.empty) {
+          submissionsList.innerHTML = `
+            <tr>
+              <td colspan="5" style="text-align: center; padding: 40px; color: var(--muted);">
+                <p>Aucune soumission trouvée</p>
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        // Effacer le message de chargement
+        submissionsList.innerHTML = '';
+        
+        // Afficher chaque soumission
+        querySnapshot.forEach(doc => {
+          console.log("Affichage du document:", doc.id);
+          afficherSoumission(doc);
+        });
+
+      } catch (error) {
+        console.error('Erreur lors du chargement:', error);
+        if (errorMessage) {
+          errorMessage.style.display = 'block';
+          errorMessage.textContent = `Erreur: ${error.message}`;
+        }
+      } finally {
+        if (loadingIndicator) loadingIndicator.style.display = 'none';
+      }
+    }
+
+    function afficherSoumission(doc) {
+      const submissionsList = document.getElementById('submissions-list');
+      const data = doc.data();
+      console.log("Document ID:", doc.id);
+      console.log("Données complètes de la soumission:", JSON.stringify(data, null, 2));
+
+      // Vérifier la structure des données et gérer le cas où personalInfo n'existe pas
+      let personalInfo;
+      if (data.personalInfo) {
+        personalInfo = data.personalInfo;
+      } else if (data.status) {
+        personalInfo = data;
+      } else {
+        personalInfo = { status: 'pending' };  // Statut par défaut si aucun statut n'est trouvé
+      }
+      console.log("Informations personnelles:", personalInfo);
+      
+      const row = document.createElement('tr');
+      row.dataset.id = doc.id;
+      row.dataset.status = personalInfo.status || 'pending';
+      
+      const dateStr = formatDate(personalInfo.timestamp);
+      const nomComplet = `${personalInfo.firstName || ''} ${personalInfo.lastName || ''}`.trim() || '—';
+      
+      row.innerHTML = `
+        <td class="submission-id">#${doc.id.slice(0, 8)}</td>
+        <td>${dateStr}</td>
+        <td>${nomComplet}</td>
+        <td><span class="submission-status status-${personalInfo.status || 'pending'}">${getStatusLabel(personalInfo.status)}</span></td>
+        <td>
+          <div class="action-buttons">
+            <button class="btn btn-approve" onclick="event.stopPropagation(); window.approuverSoumission('${doc.id}')">
+              <span class="btn-icon">✓</span> Accepter
+            </button>
+            <button class="btn btn-reject" onclick="event.stopPropagation(); window.rejeterSoumission('${doc.id}')">
+              <span class="btn-icon">✕</span> Refuser
+            </button>
+          </div>
+        </td>
+      `;
+
+      row.addEventListener('click', () => afficherDetailsModal(doc));
+      submissionsList.appendChild(row);
+    }
+
+    function afficherDetailsModal(doc) {
+      const modal = document.getElementById('submissionModal');
+      const modalContent = document.getElementById('modalContent');
+      const data = doc.data();
+      
+      const personalInfo = data.personalInfo || {};
+      const familyInfo = data.familyInfo || {};
+      const financialInfo = data.financialInfo || {};
+      const goals = data.goals || {};
+      
+      modalContent.innerHTML = `
+        <div class="modal-header">
+          <h3>Détails de la soumission #${doc.id.slice(0, 8)}</h3>
+        </div>
+        <div class="submission-details">
+          <!-- Informations personnelles -->
+          <div class="detail-group">
+            <h4>Nom complet</h4>
+            <p>${personalInfo.firstName || ''} ${personalInfo.lastName || ''}</p>
+          </div>
+          <div class="detail-group">
+            <h4>Email</h4>
+            <p>${personalInfo.email || '—'}</p>
+          </div>
+          <div class="detail-group">
+            <h4>Téléphone</h4>
+            <p>${personalInfo.phone || '—'}</p>
+          </div>
+          <div class="detail-group">
+            <h4>Date de soumission</h4>
+            <p>${formatDate(personalInfo.timestamp)}</p>
+          </div>
+
+          <!-- Informations familiales -->
+          <div class="detail-group">
+            <h4>État civil</h4>
+            <p>${familyInfo.civilStatus || '—'}</p>
+          </div>
+          <div class="detail-group">
+            <h4>Nombre d'enfants</h4>
+            <p>${familyInfo.children || '—'}</p>
+          </div>
+          <div class="detail-group">
+            <h4>Taille du ménage</h4>
+            <p>${familyInfo.householdSize || '—'}</p>
+          </div>
+
+          <!-- Informations financières -->
+          <div class="detail-group">
+            <h4>Revenu mensuel</h4>
+            <p>${financialInfo.monthlyIncome ? `${financialInfo.monthlyIncome} $` : '—'}</p>
+          </div>
+          <div class="detail-group">
+            <h4>Épargne mensuelle</h4>
+            <p>${financialInfo.monthlySavings ? `${financialInfo.monthlySavings} $` : '—'}</p>
+          </div>
+          <div class="detail-group">
+            <h4>Dettes</h4>
+            <p>${financialInfo.debts ? financialInfo.debts.join(', ') : '—'}</p>
+          </div>
+
+          <!-- Objectifs -->
+          <div class="detail-group">
+            <h4>Objectifs financiers</h4>
+            <p>${goals.financialGoals ? goals.financialGoals.join(', ') : '—'}</p>
+          </div>
+          <div class="detail-group">
+            <h4>Tolérance au risque</h4>
+            <p>${goals.riskTolerance || '—'}</p>
+          </div>
+          <div class="detail-group">
+            <h4>Horizon temporel</h4>
+            <p>${goals.timeHorizon || '—'}</p>
+          </div>
+        </div>
+
+        ${personalInfo.status === 'pending' ? `
+          <div class="submission-actions">
+            <button class="btn btn-approve" onclick="approuverSoumission('${doc.id}')">
+              <span class="btn-icon">✓</span> Accepter la soumission
+            </button>
+            <button class="btn btn-reject" onclick="rejeterSoumission('${doc.id}')">
+              <span class="btn-icon">✕</span> Refuser la soumission
+            </button>
+          </div>
+        ` : `
+          <div class="submission-actions">
+            <p style="color: var(--muted); text-align: center; padding: 10px;">
+              ${personalInfo.status === 'approved' ? 
+                'Cette soumission a été acceptée' : 
+                'Cette soumission a été refusée'}
+            </p>
+          </div>
+        `}
+      `;
+      
+      modal.classList.add('active');
+    }
+
+    // Fermer le modal
+    document.querySelector('.modal-close').addEventListener('click', () => {
+      document.getElementById('submissionModal').classList.remove('active');
+    });
+
+    // Fermer le modal en cliquant en dehors
+    document.getElementById('submissionModal').addEventListener('click', (e) => {
+      if (e.target.id === 'submissionModal') {
+        e.target.classList.remove('active');
+      }
+    });
+
+    function getStatusLabel(status) {
+      switch(status) {
+        case 'approved': return 'Approuvée';
+        case 'rejected': return 'Rejetée';
+        default: return 'En attente';
+      }
+    }
+
+    function formatDate(timestamp) {
+      if (!timestamp) return '—';
+      const date = new Date(timestamp);
+      return date.toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+
+    // Fonctions pour gérer les soumissions
+    window.approuverSoumission = async function(id) {
+      try {
+        console.log("Tentative d'approbation de la soumission:", id);
+        const submissionRef = doc(db, 'familyInfo', id);
+        
+        // Vérifier d'abord la structure actuelle du document
+        const docSnap = await getDoc(submissionRef);
+        const data = docSnap.data();
+        
+        let updateData;
+        if (data.personalInfo) {
+          // Si la structure utilise personalInfo
+          updateData = {
+            'personalInfo.status': 'approved',
+            'personalInfo.updatedAt': new Date().toISOString(),
+            'personalInfo.approvedBy': currentUser?.email,
+            'personalInfo.approvedAt': new Date().toISOString()
+          };
+        } else {
+          // Si la structure est à la racine
+          updateData = {
+            'status': 'approved',
+            'updatedAt': new Date().toISOString(),
+            'approvedBy': currentUser?.email,
+            'approvedAt': new Date().toISOString()
+          };
+        }
+        
+        await updateDoc(submissionRef, updateData);
+        
+        console.log("Soumission approuvée avec succès");
+        document.getElementById('submissionModal').classList.remove('active');
+        await chargerSoumissions();
+      } catch (error) {
+        console.error('Erreur lors de l\'approbation:', error);
+        alert('Une erreur est survenue lors de l\'approbation de la soumission.');
+      }
+    }
+
+    window.rejeterSoumission = async function(id) {
+      try {
+        console.log("Tentative de rejet de la soumission:", id);
+        const submissionRef = doc(db, 'familyInfo', id);
+        await updateDoc(submissionRef, {
+          'personalInfo.status': 'rejected',
+          'personalInfo.updatedAt': new Date().toISOString(),
+          'personalInfo.rejectedBy': currentUser?.email,
+          'personalInfo.rejectedAt': new Date().toISOString()
+        });
+        
+        console.log("Soumission rejetée avec succès");
+        document.getElementById('submissionModal').classList.remove('active');
+        await chargerSoumissions();
+      } catch (error) {
+        console.error('Erreur lors du rejet:', error);
+        alert('Une erreur est survenue lors du rejet de la soumission.');
+      }
+    }
+  </script>
+</body>
+</html>
